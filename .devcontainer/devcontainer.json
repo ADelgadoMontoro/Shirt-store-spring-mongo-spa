@@ -1,0 +1,20 @@
+{
+  "name": "reservas-pistas-devcontainer",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker",
+        "vscjava.vscode-java-pack",
+        "vmware.vscode-spring-boot",
+        "pivotal.vscode-spring-boot-dashboard",
+        "vmware.vscode-spring-initializr",
+        "redhat.vscode-yaml"
+      ]
+    }
+  }
+}
