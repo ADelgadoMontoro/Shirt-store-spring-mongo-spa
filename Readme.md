@@ -29,7 +29,7 @@ El historial de cambios del proyecto se registra en `CHANGELOG.md`.
 
 ## Ejecución local
 1. Configura MongoDB y variables de entorno usadas en `application.yml`.
-2. Arranca la app:
+2. Arranca la app:L
 
 ```bash
 ./mvnw spring-boot:run
