@@ -25,6 +25,10 @@ public class Shirt {
     @Id
     private String id;
 
+    @NotBlank(message = "Name cannot be null")
+    @Size(max = 60)
+    private String nombre;
+
     @NotNull(message = "Size cannot be null")
     private ShirtSize size;
 
