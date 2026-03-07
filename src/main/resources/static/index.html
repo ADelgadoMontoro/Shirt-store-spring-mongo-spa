@@ -24,6 +24,7 @@
         <li id="menu_horarios" class="nav-item"><a class="nav-link" href="#horarios">horarios</a></li>
         <li id="menu_usuarios" class="nav-item"><a class="nav-link" href="#usuarios">Usuarios</a></li>
         <li id="menu_reservas" class="nav-item"><a class="nav-link" href="#reservas">Reservas</a></li>
+        <li id="menu_shirts" class="nav-item"><a class="nav-link" href="#shirts">Camisetas</a></li>
       </ul>
     </div>
   </div>
@@ -225,6 +226,100 @@
           </table>
         </div>
 
+      </div>
+    </div>
+  </section>
+
+  <!-- Camisetas -->
+  <section id="panel_shirts" class="mt-4 panel">
+    <div class="card shadow-sm">
+      <div class="card-header fw-semibold">Camisetas</div>
+      <div class="card-body">
+
+        <form id="formShirt" class="row g-2 align-items-end">
+          <input id="shirtEditId" type="hidden">
+
+          <div class="col-md-2">
+            <label class="form-label">Talla</label>
+            <select id="shirtSize" class="form-select" required>
+              <option value="" disabled selected>Seleccione...</option>
+              <option value="XXS">XXS</option>
+              <option value="XS">XS</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+              <option value="XXXL">XXXL</option>
+            </select>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Género</label>
+            <select id="shirtGender" class="form-select" required>
+              <option value="" disabled selected>Seleccione...</option>
+              <option value="MEN">MEN</option>
+              <option value="WOMEN">WOMEN</option>
+              <option value="UNISEX">UNISEX</option>
+              <option value="KIDS">KIDS</option>
+            </select>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Color</label>
+            <input id="shirtColor" class="form-control" required>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Marca</label>
+            <input id="shirtBrand" class="form-control" required>
+          </div>
+
+          <div class="col-md-1">
+            <label class="form-label">Stock</label>
+            <input id="shirtStock" type="number" min="0" class="form-control" required>
+          </div>
+
+          <div class="col-md-1">
+            <label class="form-label">Precio</label>
+            <input id="shirtPrice" type="number" min="0.01" step="0.01" class="form-control" required>
+          </div>
+
+          <div class="col-md-1">
+            <div class="form-check">
+              <input id="shirtActive" class="form-check-input" type="checkbox" checked>
+              <label class="form-check-label" for="shirtActive">Activo</label>
+            </div>
+          </div>
+
+          <div class="col-md-1 d-grid">
+            <button id="btnShirtSave" class="btn btn-primary" type="submit">Guardar</button>
+          </div>
+
+          <div class="col-md-2 d-grid">
+            <button id="btnShirtCancel" class="btn btn-outline-secondary" type="button">Cancelar edición</button>
+          </div>
+        </form>
+
+        <hr>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Talla</th>
+                <th>Género</th>
+                <th>Color</th>
+                <th>Marca</th>
+                <th>Stock</th>
+                <th>Precio</th>
+                <th>Activo</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaShirts"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </section>
