@@ -4,10 +4,12 @@ const API = {
   instalaciones: "/api/instalaciones",
   usuarios: "/api/usuarios",
   reservas: "/api/reservas",
-  horarios: "/api/horarios" //antes faltaba la barra inicial y petaba la ruta
+  horarios: "/api/horarios", //antes faltaba la barra inicial y petaba la ruta
+  shirts: "/api/shirts"
 };
 
 let horariosReservar = [];
+let camisetaEditandoId = null;
 
 
 /* =========================
@@ -37,6 +39,19 @@ function wireEvents() {
 
   $("#menu_horarios").on("click", function (e) {
     cargarHorarios();
+  });
+
+  $("#menu_shirts").on("click", function () {
+    cargarCamisetas();
+  });
+
+  $("#formShirt").on("submit", function (e) {
+    e.preventDefault();
+    guardarCamiseta();
+  });
+
+  $("#btnShirtCancel").on("click", function () {
+    resetFormCamiseta();
   });
 }
 
@@ -75,7 +90,7 @@ function escapeHtml(s) {
    ========================= */
 
 function cargarTodo() {
-  $.when(cargarInstalaciones(), cargarUsuarios(), cargarHorarios())
+  $.when(cargarInstalaciones(), cargarUsuarios(), cargarHorarios(), cargarCamisetas())
     .done(function () {
       cargarReservas();
     })
@@ -448,4 +463,134 @@ function construirUsuariosMap() {
   });
 
   return map;
+}
+
+/* =========================
+   Camisetas
+   ========================= */
+
+function cargarCamisetas() {
+  return $.getJSON(API.shirts)
+    .done(function (data) {
+      renderCamisetas(data);
+    })
+    .fail(function (xhr) {
+      showAlert("danger", parseApiError(xhr, "Error cargando camisetas"));
+    });
+}
+
+function renderCamisetas(camisetas) {
+  const rows = (camisetas || []).map(function (s) {
+    return `
+      <tr>
+        <td>${escapeHtml(s.nombre)}</td>
+        <td>${escapeHtml(s.size)}</td>
+        <td>${escapeHtml(s.gender)}</td>
+        <td>${escapeHtml(s.color)}</td>
+        <td>${escapeHtml(s.brand)}</td>
+        <td>${escapeHtml(s.stock)}</td>
+        <td>${escapeHtml(s.price)}</td>
+        <td>${s.active ? "Sí" : "No"}</td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary me-1" data-action="edit-shirt" data-id="${s.id}">
+            Editar
+          </button>
+          <button class="btn btn-sm btn-outline-danger" data-action="del-shirt" data-id="${s.id}">
+            Eliminar
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  $("#tablaShirts").html(rows || `<tr><td colspan="9" class="text-center text-muted">Sin datos</td></tr>`);
+
+  $("#tablaShirts button[data-action='edit-shirt']").off("click").on("click", function () {
+    const id = $(this).data("id");
+    editarCamiseta(id);
+  });
+
+  $("#tablaShirts button[data-action='del-shirt']").off("click").on("click", function () {
+    const id = $(this).data("id");
+    eliminarCamiseta(id);
+  });
+}
+
+function guardarCamiseta() {
+  const payload = {
+    nombre: $("#shirtNombre").val().trim(),
+    size: $("#shirtSize").val(),
+    gender: $("#shirtGender").val(),
+    color: $("#shirtColor").val().trim(),
+    brand: $("#shirtBrand").val().trim(),
+    stock: Number($("#shirtStock").val()),
+    price: Number($("#shirtPrice").val()),
+    active: $("#shirtActive").is(":checked")
+  };
+
+  const isEdit = !!camisetaEditandoId;
+  const url = isEdit ? `${API.shirts}/${camisetaEditandoId}` : API.shirts;
+  const method = isEdit ? "PUT" : "POST";
+
+  $.ajax({
+    url: url,
+    method: method,
+    contentType: "application/json",
+    data: JSON.stringify(payload)
+  })
+    .done(function () {
+      showAlert("success", isEdit ? "Camiseta actualizada" : "Camiseta creada");
+      resetFormCamiseta();
+      cargarCamisetas();
+    })
+    .fail(function (xhr) {
+      showAlert("danger", parseApiError(xhr, isEdit ? "Error actualizando camiseta" : "Error creando camiseta"));
+    });
+}
+
+function editarCamiseta(id) {
+  $.getJSON(`${API.shirts}/${id}`)
+    .done(function (s) {
+      camisetaEditandoId = s.id;
+      $("#shirtEditId").val(s.id || "");
+      $("#shirtNombre").val(s.nombre || "");
+      $("#shirtSize").val(s.size || "");
+      $("#shirtGender").val(s.gender || "");
+      $("#shirtColor").val(s.color || "");
+      $("#shirtBrand").val(s.brand || "");
+      $("#shirtStock").val(s.stock !== undefined && s.stock !== null ? s.stock : 0);
+      $("#shirtPrice").val(s.price !== undefined && s.price !== null ? s.price : 0);
+      $("#shirtActive").prop("checked", !!s.active);
+      $("#btnShirtSave").text("Actualizar");
+    })
+    .fail(function (xhr) {
+      showAlert("danger", parseApiError(xhr, "Error cargando camiseta"));
+    });
+}
+
+function eliminarCamiseta(id) {
+  if (!confirm("¿Eliminar la camiseta?")) return;
+
+  $.ajax({
+    url: `${API.shirts}/${id}`,
+    method: "DELETE"
+  })
+    .done(function () {
+      showAlert("success", "Camiseta eliminada");
+      if (camisetaEditandoId === id) {
+        resetFormCamiseta();
+      }
+      cargarCamisetas();
+    })
+    .fail(function (xhr) {
+      showAlert("danger", parseApiError(xhr, "Error eliminando camiseta"));
+    });
+}
+
+function resetFormCamiseta() {
+  camisetaEditandoId = null;
+  $("#shirtEditId").val("");
+  $("#formShirt")[0].reset();
+  $("#shirtActive").prop("checked", true);
+  $("#btnShirtSave").text("Guardar");
 }
