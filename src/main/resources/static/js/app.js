@@ -483,6 +483,7 @@ function renderCamisetas(camisetas) {
   const rows = (camisetas || []).map(function (s) {
     return `
       <tr>
+        <td>${escapeHtml(s.nombre)}</td>
         <td>${escapeHtml(s.size)}</td>
         <td>${escapeHtml(s.gender)}</td>
         <td>${escapeHtml(s.color)}</td>
@@ -502,7 +503,7 @@ function renderCamisetas(camisetas) {
     `;
   }).join("");
 
-  $("#tablaShirts").html(rows || `<tr><td colspan="8" class="text-center text-muted">Sin datos</td></tr>`);
+  $("#tablaShirts").html(rows || `<tr><td colspan="9" class="text-center text-muted">Sin datos</td></tr>`);
 
   $("#tablaShirts button[data-action='edit-shirt']").off("click").on("click", function () {
     const id = $(this).data("id");
@@ -517,6 +518,7 @@ function renderCamisetas(camisetas) {
 
 function guardarCamiseta() {
   const payload = {
+    nombre: $("#shirtNombre").val().trim(),
     size: $("#shirtSize").val(),
     gender: $("#shirtGender").val(),
     color: $("#shirtColor").val().trim(),
@@ -551,6 +553,7 @@ function editarCamiseta(id) {
     .done(function (s) {
       camisetaEditandoId = s.id;
       $("#shirtEditId").val(s.id || "");
+      $("#shirtNombre").val(s.nombre || "");
       $("#shirtSize").val(s.size || "");
       $("#shirtGender").val(s.gender || "");
       $("#shirtColor").val(s.color || "");

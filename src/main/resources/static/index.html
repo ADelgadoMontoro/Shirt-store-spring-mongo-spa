@@ -239,6 +239,11 @@
         <form id="formShirt" class="row g-2 align-items-end">
           <input id="shirtEditId" type="hidden">
 
+          <div class="col-md-3">
+            <label class="form-label">Nombre / modelo</label>
+            <input id="shirtNombre" class="form-control" required>
+          </div>
+
           <div class="col-md-2">
             <label class="form-label">Talla</label>
             <select id="shirtSize" class="form-select" required>
@@ -307,6 +312,7 @@
           <table class="table table-hover align-middle">
             <thead>
               <tr>
+                <th>Nombre</th>
                 <th>Talla</th>
                 <th>Género</th>
                 <th>Color</th>
