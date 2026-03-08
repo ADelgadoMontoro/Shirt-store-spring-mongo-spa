@@ -709,7 +709,7 @@ function agregarLineaPedido() {
 
   const shirt = camisetasCache.find(s => s.id === shirtId);
   if (!shirt) {
-    showAlert("danger", "Camiseta no encontrada en catÃ¡logo");
+    showAlert("danger", "Camiseta no encontrada en catálogo");
     return;
   }
 
@@ -748,7 +748,7 @@ function renderLineasPedidoDraft() {
     `;
   }).join("");
 
-  $("#tablaOrderItemsDraft").html(rows || `<tr><td colspan="6" class="text-center text-muted">Sin lÃ­neas</td></tr>`);
+  $("#tablaOrderItemsDraft").html(rows || `<tr><td colspan="6" class="text-center text-muted">Sin líneas</td></tr>`);
 
   $("#tablaOrderItemsDraft button[data-action='del-order-item']").off("click").on("click", function () {
     const idx = Number($(this).data("idx"));
@@ -767,7 +767,7 @@ function crearPedido() {
     return;
   }
   if (!lineasPedidoDraft.length) {
-    showAlert("warning", "AÃ±ada al menos una lÃ­nea al pedido");
+    showAlert("warning", "Añada al menos una línea al pedido");
     return;
   }
 
@@ -874,7 +874,7 @@ function verDetallePedido(id) {
         `;
       }).join("");
 
-      $("#tablaOrderDetailItems").html(rows || `<tr><td colspan="5" class="text-center text-muted">Sin lÃ­neas</td></tr>`);
+      $("#tablaOrderDetailItems").html(rows || `<tr><td colspan="5" class="text-center text-muted">Sin líneas</td></tr>`);
       $("#orderDetailPanel").removeClass("d-none");
     })
     .fail(function (xhr) {
@@ -883,7 +883,7 @@ function verDetallePedido(id) {
 }
 
 function eliminarPedido(id) {
-  if (!confirm("Â¿Eliminar el pedido?")) return;
+  if (!confirm("¿Eliminar el pedido?")) return;
 
   $.ajax({
     url: `${API.orders}/${id}`,
