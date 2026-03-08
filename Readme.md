@@ -1,42 +1,95 @@
-# Shirt Store SPA - Spring Boot + MongoDB
+# ADT06 - Spring REST + MongoDB (Tienda de camisetas, perfil ADMIN)
 
-Proyecto de aprendizaje para evolucionar una app REST + SPA hacia una **tienda de camisetas**.
+Proyecto de clase basado en Spring Boot + MongoDB + SPA (HTML/Bootstrap/jQuery) adaptado al dominio de tienda de camisetas.
 
-## Objetivo
-Construir una tienda online con:
-- Catálogo de camisetas.
-- Login de usuarios.
-- Carrito de compra.
-- Gestión de pedidos en iteraciones posteriores.
+## 1. Funcionalidades implementadas
 
-## Stack
-- Backend: Spring Boot 3, Spring Web, Spring Data MongoDB, Validation.
-- Base de datos: MongoDB.
-- Frontend: HTML, Bootstrap, jQuery (SPA ligera sin build tools).
+### Camisetas (CRUD completo)
+- Crear camiseta.
+- Listar camisetas.
+- Editar camiseta.
+- Eliminar camiseta.
 
-## Estado actual
-La base del proyecto ya incluye arquitectura cliente-servidor, API REST y SPA funcional. Estamos adaptándolo del dominio de reservas al dominio e-commerce.
+### Usuarios (CRUD completo)
+- Crear usuario.
+- Listar usuarios.
+- Editar usuario.
+- Eliminar usuario.
+- Campo `rol` incluido en el modelo.
 
-## Roadmap de aprendizaje
-1. Crear módulo de camisetas (modelo, repositorio, servicio, controller).
-2. Añadir pestaña `Camisetas` en la SPA y listar productos.
-3. Implementar autenticación/login.
-4. Implementar carrito (añadir, quitar, vaciar, total).
-5. Conectar checkout/pedidos.
+### Pedidos (maestro-detalle)
+- Crear pedido.
+- Listar pedidos.
+- Ver detalle de pedido.
+- Eliminar pedido.
 
-## Changelog
-El historial de cambios del proyecto se registra en `CHANGELOG.md`.
+Modelo documental aplicado:
+- Documento maestro: `Order`.
+- Detalle embebido: `items` (`OrderItem`).
+- Snapshot de usuario embebido: `OrderUserSnapshot`.
 
-## Ejecución local
-1. Configura MongoDB y variables de entorno usadas en `application.yml`.
-2. Arranca la app:
+## 2. Stack técnico
+- Java 21
+- Spring Boot 3 (Web, Validation, Data MongoDB)
+- MongoDB
+- Frontend: HTML + Bootstrap + jQuery
+- Maven Wrapper (`mvnw`)
+
+## 3. Estructura relevante
+- Backend Java: `src/main/java/com/iesvdc/dam/acceso`
+- Frontend SPA: `src/main/resources/static`
+- Configuración Spring: `src/main/resources/application*.yml`
+- Entorno DevContainer: `.devcontainer/`
+
+## 4. Variables de entorno
+Copia `.env.example` a `.env` y ajusta valores:
+
+```bash
+cp .env.example .env
+```
+
+## 5. Ejecución
+
+### Opción A: Docker (recomendada)
+Levantar MongoDB y Mongo Express:
+
+```bash
+docker compose -f .devcontainer/docker-compose.yml up -d mongo mongo-express
+```
+
+Arrancar Spring Boot en local (PowerShell):
+
+```powershell
+$env:SPRING_DATA_MONGODB_URI="mongodb://root:CHANGE_ME_PASSWORD@localhost:27017/reservas_db?authSource=admin"
+.\mvnw spring-boot:run
+```
+
+Arrancar Spring Boot en local (bash):
+
+```bash
+SPRING_DATA_MONGODB_URI="mongodb://root:CHANGE_ME_PASSWORD@localhost:27017/reservas_db?authSource=admin" ./mvnw spring-boot:run
+```
+
+### Opción B: DevContainer completo
+Abrir el proyecto en VS Code con Dev Containers y lanzar:
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-3. Abre:
+## 6. Acceso
+- App web: `http://localhost:8080`
+- Mongo Express: `http://localhost:8081`
 
-```text
-http://localhost:8080
-```
+## 7. Evidencias para la entrega (checklist)
+- [ ] Captura CRUD camisetas.
+- [ ] Captura CRUD usuarios.
+- [ ] Captura creación de pedido.
+- [ ] Captura listado + detalle de pedido (maestro-detalle).
+- [ ] Breve justificación del modelo documental:
+  - [ ] por qué `items` va embebido en `Order`.
+  - [ ] por qué no se usa colección separada para líneas de pedido.
+
+## 8. Notas
+- El perfil asumido en esta práctica es ADMIN.
+- No se implementa autenticación real en esta iteración.
