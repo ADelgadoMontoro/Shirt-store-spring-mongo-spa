@@ -25,6 +25,7 @@
         <li id="menu_usuarios" class="nav-item"><a class="nav-link" href="#usuarios">Usuarios</a></li>
         <li id="menu_reservas" class="nav-item"><a class="nav-link" href="#reservas">Reservas</a></li>
         <li id="menu_shirts" class="nav-item"><a class="nav-link" href="#shirts">Camisetas</a></li>
+        <li id="menu_orders" class="nav-item"><a class="nav-link" href="#orders">Pedidos</a></li>
       </ul>
     </div>
   </div>
@@ -326,6 +327,103 @@
             <tbody id="tablaShirts"></tbody>
           </table>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pedidos -->
+  <section id="panel_orders" class="mt-4 panel">
+    <div class="card shadow-sm">
+      <div class="card-header fw-semibold">Pedidos</div>
+      <div class="card-body">
+
+        <form id="formOrder" class="row g-2 align-items-end">
+          <div class="col-md-4">
+            <label class="form-label">Usuario</label>
+            <select id="ordUsuario" class="form-select" required></select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Camiseta</label>
+            <select id="ordShirt" class="form-select"></select>
+          </div>
+
+          <div class="col-md-1">
+            <label class="form-label">Cantidad</label>
+            <input id="ordQty" type="number" min="1" value="1" class="form-control">
+          </div>
+
+          <div class="col-md-2 d-grid">
+            <button id="btnOrderAddItem" type="button" class="btn btn-outline-primary">AÃ±adir lÃ­nea</button>
+          </div>
+
+          <div class="col-md-1">
+            <label class="form-label">Total</label>
+            <input id="ordTotal" class="form-control" readonly>
+          </div>
+
+          <div class="col-12">
+            <div class="table-responsive mt-2">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Camiseta</th>
+                    <th>Talla</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th class="text-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaOrderItemsDraft"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="col-md-3 d-grid mt-2">
+            <button class="btn btn-success" type="submit">Crear pedido</button>
+          </div>
+          <div class="col-md-3 d-grid mt-2">
+            <button id="btnOrderReset" class="btn btn-outline-secondary" type="button">Limpiar lÃ­neas</button>
+          </div>
+        </form>
+
+        <hr>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Usuario</th>
+                <th>LÃ­neas</th>
+                <th>Total</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaOrders"></tbody>
+          </table>
+        </div>
+
+        <div id="orderDetailPanel" class="mt-3 d-none">
+          <h6 class="fw-semibold">Detalle del pedido</h6>
+          <div id="orderDetailHeader" class="small text-muted mb-2"></div>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Camiseta</th>
+                  <th>Talla</th>
+                  <th>Precio</th>
+                  <th>Cantidad</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody id="tablaOrderDetailItems"></tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
