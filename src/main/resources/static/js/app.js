@@ -11,6 +11,7 @@ const API = {
 
 let horariosReservar = [];
 let camisetaEditandoId = null;
+let usuarioEditandoId = null;
 let usuariosCache = [];
 let camisetasCache = [];
 let lineasPedidoDraft = [];
@@ -29,7 +30,7 @@ function wireEvents() {
 
   $("#formUsuario").on("submit", function (e) {
     e.preventDefault();
-    crearUsuario();
+    guardarUsuario();
   });
 
   $("#formHorario").on("submit", function (e) {
@@ -61,6 +62,10 @@ function wireEvents() {
 
   $("#btnShirtCancel").on("click", function () {
     resetFormCamiseta();
+  });
+
+  $("#btnUserCancel").on("click", function () {
+    resetFormUsuario();
   });
 
   $("#btnOrderAddItem").on("click", function () {
@@ -313,7 +318,11 @@ function renderUsuarios(usuarios) {
       <tr>
         <td>${escapeHtml(u.nombre)}</td>
         <td>${escapeHtml(u.email)}</td>
+        <td>${escapeHtml(u.rol || "")}</td>
         <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary me-1" data-action="edit-user" data-id="${u.id}">
+            Editar
+          </button>
           <button class="btn btn-sm btn-outline-danger" data-action="del-user" data-id="${u.id}">
             Eliminar
           </button>
@@ -322,7 +331,12 @@ function renderUsuarios(usuarios) {
     `;
   }).join("");
 
-  $("#tablaUsuarios").html(rows || `<tr><td colspan="3" class="text-center text-muted">Sin datos</td></tr>`);
+  $("#tablaUsuarios").html(rows || `<tr><td colspan="4" class="text-center text-muted">Sin datos</td></tr>`);
+
+  $("#tablaUsuarios button[data-action='edit-user']").off("click").on("click", function () {
+    const id = $(this).data("id");
+    editarUsuario(id);
+  });
 
   $("#tablaUsuarios button[data-action='del-user']").off("click").on("click", function () {
     const id = $(this).data("id");
@@ -340,26 +354,51 @@ function rellenarSelectUsuarios(usuarios) {
   $("#ordUsuario").html(`<option value="" disabled selected>Seleccione...</option>${opts}`);
 }
 
-function crearUsuario() {
+function guardarUsuario() {
   const payload = {
     nombre: $("#userNombre").val().trim(),
     email: $("#userEmail").val().trim(),
-    password: $("#userPassword").val().trim()
+    password: $("#userPassword").val().trim(),
+    rol: $("#userRol").val()
   };
+  const isEdit = !!usuarioEditandoId;
+  const url = isEdit ? `${API.usuarios}/${usuarioEditandoId}` : API.usuarios;
+  const method = isEdit ? "PUT" : "POST";
 
   $.ajax({
-    url: API.usuarios,
-    method: "POST",
+    url: url,
+    method: method,
     contentType: "application/json",
     data: JSON.stringify(payload)
   })
     .done(function () {
-      showAlert("success", "Usuario creado");
-      $("#formUsuario")[0].reset();
+      showAlert("success", isEdit ? "Usuario actualizado" : "Usuario creado");
+      resetFormUsuario();
       cargarUsuarios();
     })
     .fail(function (xhr) {
-      showAlert("danger", parseApiError(xhr, "Error creando usuario"));
+      showAlert("danger", parseApiError(xhr, isEdit ? "Error actualizando usuario" : "Error creando usuario"));
+    });
+}
+
+function editarUsuario(id) {
+  $.getJSON(API.usuarios)
+    .done(function (data) {
+      const u = (data || []).find(function (x) { return x.id === id; });
+      if (!u) {
+        showAlert("danger", "Usuario no encontrado");
+        return;
+      }
+      usuarioEditandoId = u.id;
+      $("#userEditId").val(u.id || "");
+      $("#userNombre").val(u.nombre || "");
+      $("#userEmail").val(u.email || "");
+      $("#userPassword").val(u.password || "");
+      $("#userRol").val(u.rol || "ADMIN");
+      $("#btnUserSave").text("Actualizar");
+    })
+    .fail(function (xhr) {
+      showAlert("danger", parseApiError(xhr, "Error cargando usuario"));
     });
 }
 
@@ -505,6 +544,14 @@ function cargarCamisetas() {
     .fail(function (xhr) {
       showAlert("danger", parseApiError(xhr, "Error cargando camisetas"));
     });
+}
+
+function resetFormUsuario() {
+  usuarioEditandoId = null;
+  $("#userEditId").val("");
+  $("#formUsuario")[0].reset();
+  $("#userRol").val("ADMIN");
+  $("#btnUserSave").text("Guardar");
 }
 
 function rellenarSelectShirtsPedido(camisetas) {

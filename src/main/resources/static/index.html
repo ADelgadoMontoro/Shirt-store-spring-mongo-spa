@@ -147,20 +147,32 @@
       <div class="card-body">
 
         <form id="formUsuario" class="row g-2 align-items-end">
+          <input id="userEditId" type="hidden">
+
           <div class="col-md-3">
             <label class="form-label">Nombre</label>
             <input id="userNombre" class="form-control" required>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label">Email</label>
             <input id="userEmail" type="email" class="form-control" required>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label class="form-label">Password</label>
             <input id="userPassword" type="password" class="form-control" required>
           </div>
-          <div class="col-md-2 d-grid">
-            <button class="btn btn-primary" type="submit">Añadir</button>
+          <div class="col-md-2">
+            <label class="form-label">Rol</label>
+            <select id="userRol" class="form-select" required>
+              <option value="ADMIN" selected>ADMIN</option>
+              <option value="USER">USER</option>
+            </select>
+          </div>
+          <div class="col-md-1 d-grid">
+            <button id="btnUserSave" class="btn btn-primary" type="submit">Guardar</button>
+          </div>
+          <div class="col-md-1 d-grid">
+            <button id="btnUserCancel" class="btn btn-outline-secondary" type="button">Cancelar</button>
           </div>
         </form>
 
@@ -172,6 +184,7 @@
               <tr>
                 <th>Nombre</th>
                 <th>Email</th>
+                <th>Rol</th>
                 <th class="text-end">Acciones</th>
               </tr>
             </thead>
