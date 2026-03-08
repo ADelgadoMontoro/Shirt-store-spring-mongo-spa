@@ -5,11 +5,16 @@ const API = {
   usuarios: "/api/usuarios",
   reservas: "/api/reservas",
   horarios: "/api/horarios", //antes faltaba la barra inicial y petaba la ruta
-  shirts: "/api/shirts"
+  shirts: "/api/shirts",
+  orders: "/api/orders"
 };
 
 let horariosReservar = [];
 let camisetaEditandoId = null;
+let usuariosCache = [];
+let camisetasCache = [];
+let lineasPedidoDraft = [];
+let pedidosCache = [];
 
 
 /* =========================
@@ -45,6 +50,10 @@ function wireEvents() {
     cargarCamisetas();
   });
 
+  $("#menu_orders").on("click", function () {
+    cargarPedidos();
+  });
+
   $("#formShirt").on("submit", function (e) {
     e.preventDefault();
     guardarCamiseta();
@@ -52,6 +61,19 @@ function wireEvents() {
 
   $("#btnShirtCancel").on("click", function () {
     resetFormCamiseta();
+  });
+
+  $("#btnOrderAddItem").on("click", function () {
+    agregarLineaPedido();
+  });
+
+  $("#btnOrderReset").on("click", function () {
+    resetFormPedido();
+  });
+
+  $("#formOrder").on("submit", function (e) {
+    e.preventDefault();
+    crearPedido();
   });
 }
 
@@ -93,6 +115,8 @@ function cargarTodo() {
   $.when(cargarInstalaciones(), cargarUsuarios(), cargarHorarios(), cargarCamisetas())
     .done(function () {
       cargarReservas();
+      resetFormPedido();
+      cargarPedidos();
     })
     .fail(function () {
       showAlert("danger", "Error cargando datos iniciales");
@@ -274,6 +298,7 @@ function eliminarHorario(id) {
 function cargarUsuarios() {
   return $.getJSON(API.usuarios)
     .done(function (data) {
+      usuariosCache = data || [];
       renderUsuarios(data);
       rellenarSelectUsuarios(data);
     })
@@ -312,6 +337,7 @@ function rellenarSelectUsuarios(usuarios) {
 
   $("#filtroUsuario").html(`<option value="">Todos</option>${opts}`);
   $("#resUsuario").html(`<option value="" disabled selected>Seleccione...</option>${opts}`);
+  $("#ordUsuario").html(`<option value="" disabled selected>Seleccione...</option>${opts}`);
 }
 
 function crearUsuario() {
@@ -472,11 +498,22 @@ function construirUsuariosMap() {
 function cargarCamisetas() {
   return $.getJSON(API.shirts)
     .done(function (data) {
+      camisetasCache = data || [];
       renderCamisetas(data);
+      rellenarSelectShirtsPedido(data);
     })
     .fail(function (xhr) {
       showAlert("danger", parseApiError(xhr, "Error cargando camisetas"));
     });
+}
+
+function rellenarSelectShirtsPedido(camisetas) {
+  const opts = (camisetas || []).map(function (s) {
+    const label = `${s.nombre || ""} | ${s.size || ""} | ${s.price || 0} EUR`;
+    return `<option value="${s.id}">${escapeHtml(label)}</option>`;
+  }).join("");
+
+  $("#ordShirt").html(`<option value="" disabled selected>Seleccione...</option>${opts}`);
 }
 
 function renderCamisetas(camisetas) {
@@ -593,4 +630,234 @@ function resetFormCamiseta() {
   $("#formShirt")[0].reset();
   $("#shirtActive").prop("checked", true);
   $("#btnShirtSave").text("Guardar");
+}
+
+/* =========================
+   Pedidos
+   ========================= */
+
+function cargarPedidos() {
+  return $.getJSON(API.orders)
+    .done(function (data) {
+      pedidosCache = data || [];
+      renderPedidos(data);
+    })
+    .fail(function (xhr) {
+      showAlert("danger", parseApiError(xhr, "Error cargando pedidos"));
+    });
+}
+
+function agregarLineaPedido() {
+  const shirtId = $("#ordShirt").val();
+  const qty = Number($("#ordQty").val() || 0);
+
+  if (!shirtId) {
+    showAlert("warning", "Seleccione una camiseta");
+    return;
+  }
+  if (!Number.isInteger(qty) || qty <= 0) {
+    showAlert("warning", "La cantidad debe ser un entero mayor que 0");
+    return;
+  }
+
+  const shirt = camisetasCache.find(s => s.id === shirtId);
+  if (!shirt) {
+    showAlert("danger", "Camiseta no encontrada en catÃ¡logo");
+    return;
+  }
+
+  const existente = lineasPedidoDraft.find(i => i.shirtId === shirtId);
+  if (existente) {
+    existente.quantity += qty;
+  } else {
+    lineasPedidoDraft.push({
+      shirtId: shirt.id,
+      nombre: shirt.nombre,
+      size: shirt.size,
+      unitPrice: Number(shirt.price),
+      quantity: qty
+    });
+  }
+
+  renderLineasPedidoDraft();
+}
+
+function renderLineasPedidoDraft() {
+  const rows = lineasPedidoDraft.map(function (it, idx) {
+    const subtotal = Number(it.unitPrice) * Number(it.quantity);
+    return `
+      <tr>
+        <td>${escapeHtml(it.nombre)}</td>
+        <td>${escapeHtml(it.size)}</td>
+        <td>${escapeHtml(Number(it.unitPrice).toFixed(2))}</td>
+        <td>${escapeHtml(it.quantity)}</td>
+        <td>${escapeHtml(subtotal.toFixed(2))}</td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-danger" data-action="del-order-item" data-idx="${idx}">
+            Quitar
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  $("#tablaOrderItemsDraft").html(rows || `<tr><td colspan="6" class="text-center text-muted">Sin lÃ­neas</td></tr>`);
+
+  $("#tablaOrderItemsDraft button[data-action='del-order-item']").off("click").on("click", function () {
+    const idx = Number($(this).data("idx"));
+    lineasPedidoDraft.splice(idx, 1);
+    renderLineasPedidoDraft();
+  });
+
+  const total = lineasPedidoDraft.reduce((acc, it) => acc + (Number(it.unitPrice) * Number(it.quantity)), 0);
+  $("#ordTotal").val(total.toFixed(2));
+}
+
+function crearPedido() {
+  const userId = $("#ordUsuario").val();
+  if (!userId) {
+    showAlert("warning", "Seleccione un usuario");
+    return;
+  }
+  if (!lineasPedidoDraft.length) {
+    showAlert("warning", "AÃ±ada al menos una lÃ­nea al pedido");
+    return;
+  }
+
+  const user = usuariosCache.find(u => u.id === userId);
+  if (!user) {
+    showAlert("danger", "Usuario no encontrado");
+    return;
+  }
+
+  const total = lineasPedidoDraft.reduce((acc, it) => acc + (Number(it.unitPrice) * Number(it.quantity)), 0);
+
+  const payload = {
+    createdAt: new Date().toISOString(),
+    user: {
+      userId: user.id,
+      nombre: user.nombre,
+      email: user.email
+    },
+    items: lineasPedidoDraft.map(function (it) {
+      return {
+        shirtId: it.shirtId,
+        nombre: it.nombre,
+        size: it.size,
+        unitPrice: Number(it.unitPrice),
+        quantity: Number(it.quantity)
+      };
+    }),
+    total: Number(total.toFixed(2))
+  };
+
+  $.ajax({
+    url: API.orders,
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(payload)
+  })
+    .done(function () {
+      showAlert("success", "Pedido creado");
+      resetFormPedido();
+      cargarPedidos();
+    })
+    .fail(function (xhr) {
+      showAlert("danger", parseApiError(xhr, "Error creando pedido"));
+    });
+}
+
+function renderPedidos(pedidos) {
+  const rows = (pedidos || []).map(function (o) {
+    const fecha = o.createdAt ? String(o.createdAt).replace("T", " ").slice(0, 19) : "";
+    const usuario = o.user ? `${o.user.nombre || ""} (${o.user.email || ""})` : "";
+    const nItems = Array.isArray(o.items) ? o.items.length : 0;
+    const total = o.total !== undefined && o.total !== null ? Number(o.total).toFixed(2) : "0.00";
+
+    return `
+      <tr>
+        <td>${escapeHtml(fecha)}</td>
+        <td>${escapeHtml(usuario)}</td>
+        <td>${escapeHtml(nItems)}</td>
+        <td>${escapeHtml(total)}</td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary me-1" data-action="detail-order" data-id="${o.id}">
+            Detalle
+          </button>
+          <button class="btn btn-sm btn-outline-danger" data-action="del-order" data-id="${o.id}">
+            Eliminar
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  $("#tablaOrders").html(rows || `<tr><td colspan="5" class="text-center text-muted">Sin pedidos</td></tr>`);
+
+  $("#tablaOrders button[data-action='detail-order']").off("click").on("click", function () {
+    const id = $(this).data("id");
+    verDetallePedido(id);
+  });
+
+  $("#tablaOrders button[data-action='del-order']").off("click").on("click", function () {
+    const id = $(this).data("id");
+    eliminarPedido(id);
+  });
+}
+
+function verDetallePedido(id) {
+  $.getJSON(`${API.orders}/${id}`)
+    .done(function (o) {
+      const fecha = o.createdAt ? String(o.createdAt).replace("T", " ").slice(0, 19) : "";
+      const usuario = o.user ? `${o.user.nombre || ""} (${o.user.email || ""})` : "";
+      const total = o.total !== undefined && o.total !== null ? Number(o.total).toFixed(2) : "0.00";
+
+      $("#orderDetailHeader").text(`Pedido ${o.id || ""} | ${fecha} | ${usuario} | Total: ${total} EUR`);
+
+      const rows = (o.items || []).map(function (it) {
+        const subtotal = Number(it.unitPrice) * Number(it.quantity);
+        return `
+          <tr>
+            <td>${escapeHtml(it.nombre)}</td>
+            <td>${escapeHtml(it.size)}</td>
+            <td>${escapeHtml(Number(it.unitPrice).toFixed(2))}</td>
+            <td>${escapeHtml(it.quantity)}</td>
+            <td>${escapeHtml(subtotal.toFixed(2))}</td>
+          </tr>
+        `;
+      }).join("");
+
+      $("#tablaOrderDetailItems").html(rows || `<tr><td colspan="5" class="text-center text-muted">Sin lÃ­neas</td></tr>`);
+      $("#orderDetailPanel").removeClass("d-none");
+    })
+    .fail(function (xhr) {
+      showAlert("danger", parseApiError(xhr, "Error cargando detalle del pedido"));
+    });
+}
+
+function eliminarPedido(id) {
+  if (!confirm("Â¿Eliminar el pedido?")) return;
+
+  $.ajax({
+    url: `${API.orders}/${id}`,
+    method: "DELETE"
+  })
+    .done(function () {
+      showAlert("success", "Pedido eliminado");
+      cargarPedidos();
+      $("#orderDetailPanel").addClass("d-none");
+      $("#tablaOrderDetailItems").empty();
+      $("#orderDetailHeader").empty();
+    })
+    .fail(function (xhr) {
+      showAlert("danger", parseApiError(xhr, "Error eliminando pedido"));
+    });
+}
+
+function resetFormPedido() {
+  lineasPedidoDraft = [];
+  $("#formOrder")[0].reset();
+  $("#ordQty").val(1);
+  $("#ordTotal").val("0.00");
+  renderLineasPedidoDraft();
 }
