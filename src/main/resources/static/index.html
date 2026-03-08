@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reservas de Pistas</title>
+  <title>Tienda de Camisetas</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
@@ -13,17 +13,14 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand" href="#">Reservas de Pistas</a>
+    <a class="navbar-brand" href="#">Tienda de Camisetas</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav ms-auto">
-        <li id="menu_instalaciones" class="nav-item"><a class="nav-link" href="#instalaciones">Instalaciones</a></li>
-        <li id="menu_horarios" class="nav-item"><a class="nav-link" href="#horarios">horarios</a></li>
         <li id="menu_usuarios" class="nav-item"><a class="nav-link" href="#usuarios">Usuarios</a></li>
-        <li id="menu_reservas" class="nav-item"><a class="nav-link" href="#reservas">Reservas</a></li>
         <li id="menu_shirts" class="nav-item"><a class="nav-link" href="#shirts">Camisetas</a></li>
         <li id="menu_orders" class="nav-item"><a class="nav-link" href="#orders">Pedidos</a></li>
       </ul>
@@ -33,114 +30,18 @@
 
 <main class="container py-4">
 
-  <!-- Área de alertas -->
   <div id="alerta" class="alert d-none" role="alert"></div>
 
-  <!-- inicio -->
   <section id="panel_inicio" class="mb-4 panel">
     <div class="card shadow-sm">
       <div class="card-header fw-semibold">Inicio</div>
       <div class="card-body">
-
         <p>Seleccione una opción del menú para comenzar.</p>
-        <p>Ejemplo de SAP (Single Application Page)</p>
-
-  </section>
-
-
-
-
-  <!-- Instalaciones -->
-  <section id="panel_instalaciones" class="mb-4 panel">
-    <div class="card shadow-sm">
-      <div class="card-header fw-semibold">Instalaciones</div>
-      <div class="card-body">
-
-        <form id="formInstalacion" class="row g-2 align-items-end">
-          <div class="col-md-4">
-            <label class="form-label">ID</label>
-            <input id="instID" class="form-control">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Nombre</label>
-            <input id="instNombre" class="form-control" required>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Dirección</label>
-            <input id="instDireccion" class="form-control" required>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Ciudad</label>
-            <input id="instCiudad" class="form-control" required>
-          </div>
-          <div class="col-md-1 d-grid">
-            <button class="btn btn-primary" type="submit">Añadir</button>
-          </div>
-        </form>
-
-        <hr>
-
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Dirección</th>
-                <th>Ciudad</th>
-                <th class="text-end">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tablaInstalaciones"></tbody>
-          </table>
-        </div>
-
+        <p>Panel ADMIN de tienda de camisetas.</p>
       </div>
     </div>
   </section>
 
-
-  <!-- Horarios -->
-  <section id="panel_horarios" class="mb-4 panel">
-    <div class="card shadow-sm">
-      <div class="card-header fw-semibold">Horarios</div>
-      <div class="card-body">
-        <form id="formHorario" class="row g-2 align-items-end">
-          <div class="col-md-5">
-            <label class="form-label">Instalación</label>
-            <select id="horInstalacion" class="form-select" required></select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Inicio</label>
-            <input id="horHoraInicio" min="00:00:00" max="23:59:59" type="time" class="form-control" required>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Fin</label>
-            <input id="horHoraFin" type="time" class="form-control" required>
-          </div>
-          <div class="col-md-1 d-grid">
-            <button class="btn btn-primary" type="submit">Añadir</button>
-          </div>
-        </form>
-        <hr/>
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th>Nombre Instalacion</th>
-                <th>Hora inicio</th>
-                <th>Hora fin</th>
-                <th class="text-end">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tablaHorarios"></tbody>
-          </table>
-        </div>
-      </div>
-      
-    </div>
-  </section>
-
-  <!-- Usuarios -->
   <section id="panel_usuarios" class="mb-4 panel">
     <div class="card shadow-sm">
       <div class="card-header fw-semibold">Usuarios</div>
@@ -196,55 +97,6 @@
     </div>
   </section>
 
-  <!-- Reservas -->
-  <section id="panel_reservas" class="panel">
-    <div class="card shadow-sm">
-      <div class="card-header fw-semibold">Reservas</div>
-      <div class="card-body">
-
-        
-        <!-- Alta de reserva -->
-        <form id="formReserva" class="row g-2 align-items-end">
-          <div class="col-md-4">
-            <label class="form-label">Usuario</label>
-            <select id="resUsuario" class="form-select" required></select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Horario</label>
-            <select id="resHorario" class="form-select" required></select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Día</label>
-            <input id="resDia" type="date" class="form-control" required>
-          </div>
-          
-          <div class="col-12 d-grid mt-2">
-            <button class="btn btn-success" type="submit">Crear reserva</button>
-          </div>
-        </form>
-
-        <hr>
-
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th>Día</th>
-                <th>Horario</th>
-                <th>Instalación</th>
-                <th>Usuario</th>
-                <th class="text-end">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tablaReservas"></tbody>
-          </table>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- Camisetas -->
   <section id="panel_shirts" class="mt-4 panel">
     <div class="card shadow-sm">
       <div class="card-header fw-semibold">Camisetas</div>
@@ -344,7 +196,6 @@
     </div>
   </section>
 
-  <!-- Pedidos -->
   <section id="panel_orders" class="mt-4 panel">
     <div class="card shadow-sm">
       <div class="card-header fw-semibold">Pedidos</div>
@@ -367,7 +218,7 @@
           </div>
 
           <div class="col-md-2 d-grid">
-            <button id="btnOrderAddItem" type="button" class="btn btn-outline-primary">AÃ±adir lÃ­nea</button>
+            <button id="btnOrderAddItem" type="button" class="btn btn-outline-primary">Añadir línea</button>
           </div>
 
           <div class="col-md-1">
@@ -397,7 +248,7 @@
             <button class="btn btn-success" type="submit">Crear pedido</button>
           </div>
           <div class="col-md-3 d-grid mt-2">
-            <button id="btnOrderReset" class="btn btn-outline-secondary" type="button">Limpiar lÃ­neas</button>
+            <button id="btnOrderReset" class="btn btn-outline-secondary" type="button">Limpiar líneas</button>
           </div>
         </form>
 
@@ -409,7 +260,7 @@
               <tr>
                 <th>Fecha</th>
                 <th>Usuario</th>
-                <th>LÃ­neas</th>
+                <th>Líneas</th>
                 <th>Total</th>
                 <th class="text-end">Acciones</th>
               </tr>

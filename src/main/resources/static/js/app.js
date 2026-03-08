@@ -1,58 +1,29 @@
 /* global $ */
 
 const API = {
-  instalaciones: "/api/instalaciones",
   usuarios: "/api/usuarios",
-  reservas: "/api/reservas",
-  horarios: "/api/horarios", //antes faltaba la barra inicial y petaba la ruta
   shirts: "/api/shirts",
   orders: "/api/orders"
 };
 
-let horariosReservar = [];
-let camisetaEditandoId = null;
 let usuarioEditandoId = null;
+let camisetaEditandoId = null;
 let usuariosCache = [];
 let camisetasCache = [];
 let lineasPedidoDraft = [];
-let pedidosCache = [];
-
 
 /* =========================
    Eventos de formularios
    ========================= */
 
 function wireEvents() {
-  $("#formInstalacion").on("submit", function (e) {
-    e.preventDefault();
-    crearInstalacion();
-  });
-
   $("#formUsuario").on("submit", function (e) {
     e.preventDefault();
     guardarUsuario();
   });
 
-  $("#formHorario").on("submit", function (e) {
-    e.preventDefault();
-    crearHorario();
-  });
-
-  $("#formReserva").on("submit", function (e) {
-    e.preventDefault();
-    crearReserva();
-  });
-
-  $("#menu_horarios").on("click", function (e) {
-    cargarHorarios();
-  });
-
-  $("#menu_shirts").on("click", function () {
-    cargarCamisetas();
-  });
-
-  $("#menu_orders").on("click", function () {
-    cargarPedidos();
+  $("#btnUserCancel").on("click", function () {
+    resetFormUsuario();
   });
 
   $("#formShirt").on("submit", function (e) {
@@ -64,8 +35,12 @@ function wireEvents() {
     resetFormCamiseta();
   });
 
-  $("#btnUserCancel").on("click", function () {
-    resetFormUsuario();
+  $("#menu_shirts").on("click", function () {
+    cargarCamisetas();
+  });
+
+  $("#menu_orders").on("click", function () {
+    cargarPedidos();
   });
 
   $("#btnOrderAddItem").on("click", function () {
@@ -117,182 +92,13 @@ function escapeHtml(s) {
    ========================= */
 
 function cargarTodo() {
-  $.when(cargarInstalaciones(), cargarUsuarios(), cargarHorarios(), cargarCamisetas())
+  $.when(cargarUsuarios(), cargarCamisetas())
     .done(function () {
-      cargarReservas();
       resetFormPedido();
       cargarPedidos();
     })
     .fail(function () {
       showAlert("danger", "Error cargando datos iniciales");
-    });
-}
-
-/* =========================
-   Instalaciones
-   ========================= */
-
-function cargarInstalaciones() {
-  return $.getJSON(API.instalaciones)
-    .done(function (data) {
-      renderInstalaciones(data);
-      rellenarSelectInstalaciones(data);
-    })
-    .fail(function (xhr) {
-      showAlert("danger", parseApiError(xhr, "Error cargando instalaciones"));
-    });
-}
-
-function renderInstalaciones(instalaciones) {
-  const rows = (instalaciones || []).map(function (i) {
-    return `
-      <tr>
-        <td>${escapeHtml(i.nombre)}</td>
-        <td>${escapeHtml(i.direccion)}</td>
-        <td>${escapeHtml(i.ciudad)}</td>
-        <td class="text-end">
-          <button class="btn btn-sm btn-outline-danger" data-action="del-inst" data-id="${i.id}">
-            Eliminar
-          </button>
-        </td>
-      </tr>
-    `;
-  }).join("");
-
-  $("#tablaInstalaciones").html(rows || `<tr><td colspan="4" class="text-center text-muted">Sin datos</td></tr>`);
-
-  // Delegación de eventos para botones generados dinámicamente
-  $("#tablaInstalaciones button[data-action='del-inst']").off("click").on("click", function () {
-    const id = $(this).data("id");
-    eliminarInstalacion(id);
-  });
-}
-
-function rellenarSelectInstalaciones(instalaciones) {
-  const opts = (instalaciones || []).map(i =>
-    `<option value="${i.id}">${escapeHtml(i.nombre)} (${escapeHtml(i.ciudad)})</option>`
-  ).join("");
-
-  // Selects: filtros y alta
-  $("#filtroInstalacion").html(`<option value="">Todas</option>${opts}`);
-  $("#resInstalacion").html(`<option value="" disabled selected>Seleccione...</option>${opts}`);
-  $("#horInstalacion").html(`<option value="" disabled selected>Seleccione...</option>${opts}`);
-}
-
-function crearInstalacion() {
-  const payload = {
-    id: $("#instID").val().trim(),
-    nombre: $("#instNombre").val().trim(),
-    direccion: $("#instDireccion").val().trim(),
-    ciudad: $("#instCiudad").val().trim()
-  };
-
-  $.ajax({
-    url: API.instalaciones,
-    method: "POST",
-    contentType: "application/json",
-    data: JSON.stringify(payload)
-  })
-    .done(function () {
-      showAlert("success", "Instalación creada");
-      $("#formInstalacion")[0].reset();
-      cargarInstalaciones();
-    })
-    .fail(function (xhr) {
-      showAlert("danger", parseApiError(xhr, "Error creando instalación"));
-    });
-}
-
-/* =========================
-   horarios
-   ========================= */
-
-
-function cargarHorarios() {
-  console.log("recargando horarios...")
-  return $.getJSON(API.horarios)
-    .done(function (data) {
-      horariosReservar = data || [];
-      $('#tablaHorarios').empty();
-      console.log(data);      
-      $('#tablaHorarios').append(
-        (data || []).map(function (horario) {
-          return `
-            <tr>
-              <td>${escapeHtml(horario.instalacion.nombre)}</td>
-              <td>${escapeHtml(horario.horaInicio)}</td>
-              <td>${escapeHtml(horario.horaFin)}</td>
-              <td class="text-end">
-                <button class="btn btn-sm btn-outline-danger" data-action="del-inst" data-id="${horario.id}">
-                  Eliminar
-                </button>
-              </td>
-            </tr>
-          `})
-      );
-      // Delegación de eventos para botones generados dinámicamente
-      $("#tablaHorarios button[data-action='del-inst']").off("click").on("click", function () {
-        const id = $(this).data("id");
-        eliminarHorario(id);
-      });
-
-      rellenarSelectHorarios(horariosReservar);
-    })
-    .fail(function (xhr) {
-      showAlert("danger", parseApiError(xhr, "Error cargando horarios"));
-    });
-}
-
-function rellenarSelectHorarios(horarios) {
-  const opts = (horarios || []).map(function (h) {
-    const inst = h.instalacion || {};
-    const label = `${inst.nombre || "Instalación"} (${h.horaInicio || ""} - ${h.horaFin || ""})`;
-    return `<option value="${h.id}">${escapeHtml(label)}</option>`;
-  }).join("");
-
-  $("#resHorario").html(`<option value="" disabled selected>Seleccione...</option>${opts}`);
-}
-
-function crearHorario() {
-  const payload = {
-    //id: $("#instID").val().trim(),
-    instalacion: { id: $("#horInstalacion").val() }, //el back espera un objeto instalación, no solo el id sin mas ahora
-    horaInicio: $("#horHoraInicio").val(),
-    horaFin: $("#horHoraFin").val(),
-  };
-
-  $.ajax({
-    url: API.horarios,
-    method: "POST",
-    contentType: "application/json",
-    data: JSON.stringify(payload)
-  })
-    .done(function () {
-      showAlert("success", "Horario creado");
-      $("#formHorario")[0].reset();
-      cargarHorarios();
-    })
-    .fail(function (xhr) {
-      showAlert("danger", parseApiError(xhr, "Error creando horario"));
-    });
-}
-
-
-
-
-function eliminarHorario(id) {
-  if (!confirm("¿Eliminar el horario?")) return;
-
-  $.ajax({
-    url: `${API.horarios}/${id}`,
-    method: "DELETE"
-  })
-    .done(function () {
-      showAlert("success", "Horario eliminado");
-      cargarHorarios();
-    })
-    .fail(function (xhr) {
-      showAlert("danger", parseApiError(xhr, "Error eliminando Horario"));
     });
 }
 
@@ -349,8 +155,6 @@ function rellenarSelectUsuarios(usuarios) {
     `<option value="${u.id}">${escapeHtml(u.nombre)} (${escapeHtml(u.email)})</option>`
   ).join("");
 
-  $("#filtroUsuario").html(`<option value="">Todos</option>${opts}`);
-  $("#resUsuario").html(`<option value="" disabled selected>Seleccione...</option>${opts}`);
   $("#ordUsuario").html(`<option value="" disabled selected>Seleccione...</option>${opts}`);
 }
 
@@ -361,6 +165,7 @@ function guardarUsuario() {
     password: $("#userPassword").val().trim(),
     rol: $("#userRol").val()
   };
+
   const isEdit = !!usuarioEditandoId;
   const url = isEdit ? `${API.usuarios}/${usuarioEditandoId}` : API.usuarios;
   const method = isEdit ? "PUT" : "POST";
@@ -382,24 +187,19 @@ function guardarUsuario() {
 }
 
 function editarUsuario(id) {
-  $.getJSON(API.usuarios)
-    .done(function (data) {
-      const u = (data || []).find(function (x) { return x.id === id; });
-      if (!u) {
-        showAlert("danger", "Usuario no encontrado");
-        return;
-      }
-      usuarioEditandoId = u.id;
-      $("#userEditId").val(u.id || "");
-      $("#userNombre").val(u.nombre || "");
-      $("#userEmail").val(u.email || "");
-      $("#userPassword").val(u.password || "");
-      $("#userRol").val(u.rol || "ADMIN");
-      $("#btnUserSave").text("Actualizar");
-    })
-    .fail(function (xhr) {
-      showAlert("danger", parseApiError(xhr, "Error cargando usuario"));
-    });
+  const u = usuariosCache.find(function (x) { return x.id === id; });
+  if (!u) {
+    showAlert("danger", "Usuario no encontrado");
+    return;
+  }
+
+  usuarioEditandoId = u.id;
+  $("#userEditId").val(u.id || "");
+  $("#userNombre").val(u.nombre || "");
+  $("#userEmail").val(u.email || "");
+  $("#userPassword").val(u.password || "");
+  $("#userRol").val(u.rol || "ADMIN");
+  $("#btnUserSave").text("Actualizar");
 }
 
 function eliminarUsuario(id) {
@@ -411,6 +211,9 @@ function eliminarUsuario(id) {
   })
     .done(function () {
       showAlert("success", "Usuario eliminado");
+      if (usuarioEditandoId === id) {
+        resetFormUsuario();
+      }
       cargarUsuarios();
     })
     .fail(function (xhr) {
@@ -418,116 +221,12 @@ function eliminarUsuario(id) {
     });
 }
 
-/* =========================
-   Reservas
-   ========================= */
-
-function cargarReservas() {
-  return $.getJSON(API.reservas)
-    .done(function (data) {
-      renderReservas(data);
-    })
-    .fail(function (xhr) {
-      showAlert("danger", parseApiError(xhr, "Error cargando reservas"));
-    });
-}
-
-function crearReserva() {
-  const horarioId = $("#resHorario").val();
-  const horario = horariosReservar.find(h => h.id === horarioId); //preguntar esto puede fallar si h.id es int y horarioId string?
-  const dia = $("#resDia").val();
-  const fechaReserva = dia ? `${dia}T00:00:00Z` : null;
-
-  const payload = {
-    usuarioId: $("#resUsuario").val(),
-    fechaReserva, //antes mandaba dia suelto
-    horario
-  };
-
-  $.ajax({
-    url: API.reservas,
-    method: "POST",
-    contentType: "application/json",
-    data: JSON.stringify(payload)
-  })
-    .done(function () {
-      showAlert("success", "Reserva creada");
-      $("#formReserva")[0].reset();
-      cargarReservas();
-    })
-    .fail(function (xhr) {
-      // 409 típico por solape, 400 por validación, 404 por usuario/instalación inexistente
-      showAlert("danger", parseApiError(xhr, "Error creando reserva"));
-    });
-}
-
-function eliminarReserva(id) {
-  if (!confirm("¿Eliminar la reserva?")) return;
-
-  $.ajax({
-    url: `${API.reservas}/${id}`,
-    method: "DELETE"
-  })
-    .done(function () {
-      showAlert("success", "Reserva eliminada");
-      cargarReservas();
-    })
-    .fail(function (xhr) {
-      showAlert("danger", parseApiError(xhr, "Error eliminando reserva"));
-    });
-}
-
-function renderReservas(reservas) {
-  const usuariosMap = construirUsuariosMap();
-  const rows = (reservas || []).map(function (r) {
-    const h = r.horario || {};
-    const inst = h.instalacion || {};
-    const usuarioNombre = usuariosMap.get(r.usuarioId) || r.usuarioId;
-
-    const dia = r.fechaReserva ? String(r.fechaReserva).slice(0, 10) : "";
-    const tramo = `${h.horaInicio || ""} - ${h.horaFin || ""}`;
-    const instalacion = inst.nombre ? `${inst.nombre} (${inst.ciudad || ""})` : (inst.id || "");
-
-    return `
-      <tr>
-        <td>${escapeHtml(dia)}</td>
-        <td>${escapeHtml(tramo)}</td>
-        <td>${escapeHtml(instalacion)}</td>
-        <td>${escapeHtml(usuarioNombre)}</td>
-        <td class="text-end">
-          <button class="btn btn-sm btn-outline-danger" data-action="del-res" data-id="${r.id}">
-            Eliminar
-          </button>
-        </td>
-      </tr>
-    `;
-  }).join("");
-
-  $("#tablaReservas").html(rows || `<tr><td colspan="5" class="text-center text-muted">Sin datos</td></tr>`);
-
-  $("#tablaReservas button[data-action='del-res']").off("click").on("click", function () {
-    const id = $(this).data("id");
-    eliminarReserva(id);
-  });
-}
-
-/* =========================
-   Mapas auxiliares
-   ========================= */
-
-function construirUsuariosMap() {
-  // Construye un mapa id -> nombre leyendo la tabla ya cargada.
-  // Alternativa: guardar el último listado en una variable global.
-  const map = new Map();
-
-  // Se intenta construir desde el select de reservas (que contiene nombre + email).
-  $("#resUsuario option").each(function () {
-    const val = $(this).attr("value");
-    const txt = $(this).text();
-    if (val) map.set(val, txt);
-  });
-
-  return map;
+function resetFormUsuario() {
+  usuarioEditandoId = null;
+  $("#userEditId").val("");
+  $("#formUsuario")[0].reset();
+  $("#userRol").val("ADMIN");
+  $("#btnUserSave").text("Guardar");
 }
 
 /* =========================
@@ -544,14 +243,6 @@ function cargarCamisetas() {
     .fail(function (xhr) {
       showAlert("danger", parseApiError(xhr, "Error cargando camisetas"));
     });
-}
-
-function resetFormUsuario() {
-  usuarioEditandoId = null;
-  $("#userEditId").val("");
-  $("#formUsuario")[0].reset();
-  $("#userRol").val("ADMIN");
-  $("#btnUserSave").text("Guardar");
 }
 
 function rellenarSelectShirtsPedido(camisetas) {
@@ -686,7 +377,6 @@ function resetFormCamiseta() {
 function cargarPedidos() {
   return $.getJSON(API.orders)
     .done(function (data) {
-      pedidosCache = data || [];
       renderPedidos(data);
     })
     .fail(function (xhr) {
@@ -709,7 +399,7 @@ function agregarLineaPedido() {
 
   const shirt = camisetasCache.find(s => s.id === shirtId);
   if (!shirt) {
-    showAlert("danger", "Camiseta no encontrada en catÃ¡logo");
+    showAlert("danger", "Camiseta no encontrada en catálogo");
     return;
   }
 
@@ -748,7 +438,7 @@ function renderLineasPedidoDraft() {
     `;
   }).join("");
 
-  $("#tablaOrderItemsDraft").html(rows || `<tr><td colspan="6" class="text-center text-muted">Sin lÃ­neas</td></tr>`);
+  $("#tablaOrderItemsDraft").html(rows || `<tr><td colspan="6" class="text-center text-muted">Sin líneas</td></tr>`);
 
   $("#tablaOrderItemsDraft button[data-action='del-order-item']").off("click").on("click", function () {
     const idx = Number($(this).data("idx"));
@@ -767,7 +457,7 @@ function crearPedido() {
     return;
   }
   if (!lineasPedidoDraft.length) {
-    showAlert("warning", "AÃ±ada al menos una lÃ­nea al pedido");
+    showAlert("warning", "Añada al menos una línea al pedido");
     return;
   }
 
@@ -874,7 +564,7 @@ function verDetallePedido(id) {
         `;
       }).join("");
 
-      $("#tablaOrderDetailItems").html(rows || `<tr><td colspan="5" class="text-center text-muted">Sin lÃ­neas</td></tr>`);
+      $("#tablaOrderDetailItems").html(rows || `<tr><td colspan="5" class="text-center text-muted">Sin líneas</td></tr>`);
       $("#orderDetailPanel").removeClass("d-none");
     })
     .fail(function (xhr) {
@@ -883,7 +573,7 @@ function verDetallePedido(id) {
 }
 
 function eliminarPedido(id) {
-  if (!confirm("Â¿Eliminar el pedido?")) return;
+  if (!confirm("¿Eliminar el pedido?")) return;
 
   $.ajax({
     url: `${API.orders}/${id}`,
